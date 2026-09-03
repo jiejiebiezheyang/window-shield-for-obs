@@ -1,59 +1,63 @@
-# OBS Plugin Template
+# Window Shield for OBS（窗口保护）
 
-## Introduction
+[![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE)
 
-The plugin template is meant to be used as a starting point for OBS Studio plugin development. It includes:
+Window Shield for OBS（窗口保护）是一款仅支持 Windows 的 [OBS Studio](https://obsproject.com/) 插件，可以让你在屏幕捕获、屏幕共享和录屏软件中隐藏任意窗口。
 
-* Boilerplate plugin source code
-* A CMake project file
-* GitHub Actions workflows and repository actions
+## 工作原理
 
-## Supported Build Environments
+插件对选中的窗口调用 Win32 API [`SetWindowDisplayAffinity`](https://learn.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-setwindowdisplayaffinity)，并传入 `WDA_EXCLUDEFROMCAPTURE`。被标记的窗口在大多数捕获软件（包括 OBS 本身）中会显示为空白/黑色（或直接被排除）。
 
-| Platform  | Tool   |
-|-----------|--------|
-| Windows   | Visual Studio 17 2022 |
-| macOS     | XCode 16.0 |
-| Windows, macOS  | CMake 3.30.5 |
-| Ubuntu 24.04 | CMake 3.28.3 |
-| Ubuntu 24.04 | `ninja-build` |
-| Ubuntu 24.04 | `pkg-config`
-| Ubuntu 24.04 | `build-essential` |
+由于 `SetWindowDisplayAffinity` 必须在拥有该窗口的进程内部调用，插件通过跨进程代码注入来实现：
 
-## Quick Start
+1. 枚举系统中所有可见、有标题且未被 cloaked 的顶层窗口。
+2. 通过解析 PE 导出表，在目标进程的 `user32.dll` 中定位 `SetWindowDisplayAffinity` 函数地址。
+3. 将一小段 shellcode（x86 或 x64）写入目标进程，并通过 `CreateRemoteThread` 执行。
+4. 由 shellcode 应用或移除窗口保护。
 
-An absolute bare-bones [Quick Start Guide](https://github.com/obsproject/obs-plugintemplate/wiki/Quick-Start-Guide) is available in the wiki.
+## 功能特性
 
-## Documentation
+- 以可勾选列表的形式列出所有当前可见的窗口。
+- 勾选窗口即保护，取消勾选即解除保护。
+- 保护状态即时生效，并对仍然存活的窗口自动恢复。
+- 同时支持 32 位和 64 位目标进程。
+- 窗口列表自动刷新，新打开或已关闭的窗口会实时反映。
 
-All documentation can be found in the [Plugin Template Wiki](https://github.com/obsproject/obs-plugintemplate/wiki).
+## 环境要求
 
-Suggested reading to get up and running:
+> 由于插件源码依赖 Win32 API，仅支持 Windows。
 
-* [Getting started](https://github.com/obsproject/obs-plugintemplate/wiki/Getting-Started)
-* [Build system requirements](https://github.com/obsproject/obs-plugintemplate/wiki/Build-System-Requirements)
-* [Build system options](https://github.com/obsproject/obs-plugintemplate/wiki/CMake-Build-System-Options)
+| 组件 | 版本 |
+|------|------|
+| OBS Studio | 31.1+ |
+| Visual Studio | 17 2022 |
+| CMake | 3.28 - 3.30 |
 
-## GitHub Actions & CI
+## 构建
 
-Default GitHub Actions workflows are available for the following repository actions:
+本项目基于 [OBS 插件模板](https://github.com/obsproject/obs-plugintemplate)，使用相同的 CMake 构建系统。
 
-* `push`: Run for commits or tags pushed to `master` or `main` branches.
-* `pr-pull`: Run when a Pull Request has been pushed or synchronized.
-* `dispatch`: Run when triggered by the workflow dispatch in GitHub's user interface.
-* `build-project`: Builds the actual project and is triggered by other workflows.
-* `check-format`: Checks CMake and plugin source code formatting and is triggered by other workflows.
+```powershell
+cmake --preset windows-x64
+cmake --build --preset windows-x64
+```
 
-The workflows make use of GitHub repository actions (contained in `.github/actions`) and build scripts (contained in `.github/scripts`) which are not needed for local development, but might need to be adjusted if additional/different steps are required to build the plugin.
+构建成功后，将生成的 `window-shield-for-obs` 模块复制到 OBS 插件目录（例如 `C:\Program Files\obs-studio\obs-plugins\64bit\`），然后重启 OBS。
 
-### Retrieving build artifacts
+> **注意：** 插件必须使用与你已安装 OBS 版本相匹配的 `libobs` 编译，才能正常加载。
 
-Successful builds on GitHub Actions will produce build artifacts that can be downloaded for testing. These artifacts are commonly simple archives and will not contain package installers or installation programs.
+## 使用方法
 
-### Building a Release
+1. 启动 OBS Studio。
+2. 打开 **工具 → 窗口保护设置**。
+3. 勾选想要隐藏的窗口，取消勾选即可恢复显示。
 
-To create a release, an appropriately named tag needs to be pushed to the `main`/`master` branch using semantic versioning (e.g., `12.3.4`, `23.4.5-beta2`). A draft release will be created on the associated repository with generated installer packages or installation programs attached as release artifacts.
+## 免责声明
 
-## Signing and Notarizing on macOS
+插件使用远程线程注入对其它进程施加保护，部分杀毒软件或反作弊软件可能会将其标记为风险行为。请仅对你自己拥有或有权管理的窗口使用，并在保护第三方应用前充分了解相关风险。
 
-Basic concepts of codesigning and notarization on macOS are explained in the correspodning [Wiki article](https://github.com/obsproject/obs-plugintemplate/wiki/Codesigning-On-macOS) which has a specific section for the [GitHub Actions setup](https://github.com/obsproject/obs-plugintemplate/wiki/Codesigning-On-macOS#setting-up-code-signing-for-github-actions).
+## 许可证
+
+本项目采用 [GNU General Public License v2](LICENSE) 许可协议。
+
+© 2026 [Cyan](https://github.com/jiejiebiezheyang) &lt;ltpcloud@qq.com&gt;
