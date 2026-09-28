@@ -1,63 +1,69 @@
-# Window Shield for OBS（窗口保护）
+# Window Shield for OBS
 
-[![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE)
+[![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg?style=flat-square)](LICENSE)
+[![Platform: Windows](https://img.shields.io/badge/Platform-Windows%20only-0078D6.svg?style=flat-square&logo=windows&logoColor=white)](#requirements)
+[![OBS Studio: 31.1+](https://img.shields.io/badge/OBS%20Studio-31.1%2B-302E31.svg?style=flat-square&logo=obsstudio&logoColor=white)](https://obsproject.com/)
+[![Version: 1.0.0](https://img.shields.io/badge/version-1.0.0-green.svg?style=flat-square)](buildspec.json)
+[![GitHub stars](https://img.shields.io/github/stars/jiejiebiezheyang/window-shield-for-obs?style=flat-square)](https://github.com/jiejiebiezheyang/window-shield-for-obs/stargazers)
 
-Window Shield for OBS（窗口保护）是一款仅支持 Windows 的 [OBS Studio](https://obsproject.com/) 插件，可以让你在屏幕捕获、屏幕共享和录屏软件中隐藏任意窗口。
+**English** | [简体中文](README.zh-CN.md)
 
-## 工作原理
+Window Shield for OBS is a Windows-only plugin for [OBS Studio](https://obsproject.com/) that lets you hide any window from screen capture, screen sharing, and screen recording software.
 
-插件对选中的窗口调用 Win32 API [`SetWindowDisplayAffinity`](https://learn.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-setwindowdisplayaffinity)，并传入 `WDA_EXCLUDEFROMCAPTURE`。被标记的窗口在大多数捕获软件（包括 OBS 本身）中会显示为空白/黑色（或直接被排除）。
+## How It Works
 
-由于 `SetWindowDisplayAffinity` 必须在拥有该窗口的进程内部调用，插件通过跨进程代码注入来实现：
+The plugin calls the Win32 API [`SetWindowDisplayAffinity`](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowdisplayaffinity) with `WDA_EXCLUDEFROMCAPTURE` on the selected window. A protected window appears blank/black (or is excluded entirely) in most capture software, including OBS itself.
 
-1. 枚举系统中所有可见、有标题且未被 cloaked 的顶层窗口。
-2. 通过解析 PE 导出表，在目标进程的 `user32.dll` 中定位 `SetWindowDisplayAffinity` 函数地址。
-3. 将一小段 shellcode（x86 或 x64）写入目标进程，并通过 `CreateRemoteThread` 执行。
-4. 由 shellcode 应用或移除窗口保护。
+Because `SetWindowDisplayAffinity` must be invoked inside the process that owns the window, the plugin relies on cross-process code injection:
 
-## 功能特性
+1. Enumerate all top-level windows that are visible, have a title, and are not cloaked.
+2. Resolve the address of `SetWindowDisplayAffinity` in the target process's `user32.dll` by parsing the PE export table.
+3. Write a small shellcode stub (x86 or x64) into the target process and execute it via `CreateRemoteThread`.
+4. The shellcode applies or removes the window protection.
 
-- 以可勾选列表的形式列出所有当前可见的窗口。
-- 勾选窗口即保护，取消勾选即解除保护。
-- 保护状态即时生效，并对仍然存活的窗口自动恢复。
-- 同时支持 32 位和 64 位目标进程。
-- 窗口列表自动刷新，新打开或已关闭的窗口会实时反映。
+## Features
 
-## 环境要求
+- Lists all currently visible windows in a checkable list.
+- Check a window to protect it; uncheck it to remove the protection.
+- Protection takes effect immediately and is automatically restored for windows that are still alive.
+- Supports both 32-bit and 64-bit target processes.
+- The window list refreshes automatically, so newly opened or closed windows are reflected in real time.
 
-> 由于插件源码依赖 Win32 API，仅支持 Windows。
+## Requirements
 
-| 组件 | 版本 |
-|------|------|
-| OBS Studio | 31.1+ |
-| Visual Studio | 17 2022 |
-| CMake | 3.28 - 3.30 |
+> The plugin source depends on the Win32 API, so it is Windows-only.
 
-## 构建
+| Component     | Version     |
+| ------------- | ----------- |
+| OBS Studio    | 31.1+       |
+| Visual Studio | 17 2022     |
+| CMake         | 3.28 - 3.30 |
 
-本项目基于 [OBS 插件模板](https://github.com/obsproject/obs-plugintemplate)，使用相同的 CMake 构建系统。
+## Building
+
+This project is based on the [OBS plugin template](https://github.com/obsproject/obs-plugintemplate) and uses the same CMake build system.
 
 ```powershell
 cmake --preset windows-x64
 cmake --build --preset windows-x64
 ```
 
-构建成功后，将生成的 `window-shield-for-obs` 模块复制到 OBS 插件目录（例如 `C:\Program Files\obs-studio\obs-plugins\64bit\`），然后重启 OBS。
+After a successful build, copy the produced `window-shield-for-obs` module into the OBS plugin directory (for example `C:\Program Files\obs-studio\obs-plugins\64bit\`), then restart OBS.
 
-> **注意：** 插件必须使用与你已安装 OBS 版本相匹配的 `libobs` 编译，才能正常加载。
+> **Note:** The plugin must be compiled against a `libobs` version matching your installed OBS build, otherwise it will fail to load.
 
-## 使用方法
+## Usage
 
-1. 启动 OBS Studio。
-2. 打开 **工具 → 窗口保护设置**。
-3. 勾选想要隐藏的窗口，取消勾选即可恢复显示。
+1. Launch OBS Studio.
+2. Open **Tools → Window Shield Settings**.
+3. Check the windows you want to hide; uncheck them to restore visibility.
 
-## 免责声明
+## Disclaimer
 
-插件使用远程线程注入对其它进程施加保护，部分杀毒软件或反作弊软件可能会将其标记为风险行为。请仅对你自己拥有或有权管理的窗口使用，并在保护第三方应用前充分了解相关风险。
+The plugin uses remote thread injection to apply protection to other processes, which may be flagged as risky behavior by some antivirus or anti-cheat software. Only use it on windows you own or are authorized to manage, and make sure you understand the risks before protecting third-party applications.
 
-## 许可证
+## License
 
-本项目采用 [GNU General Public License v2](LICENSE) 许可协议。
+This project is licensed under the [GNU General Public License v2](LICENSE).
 
 © 2026 [Cyan](https://github.com/jiejiebiezheyang) &lt;ltpcloud@qq.com&gt;
