@@ -66,4 +66,4 @@ cmake --build --preset windows-x64
 
 本项目采用 [GNU General Public License v2](LICENSE) 许可协议。
 
-© 2026 [Cyan](https://github.com/jiejiebiezheyang) &lt;ltpcloud@qq.com&gt;
+© 2026 [jiejiebiezheyang](https://github.com/jiejiebiezheyang) &lt;1964234252@qq.com&gt;

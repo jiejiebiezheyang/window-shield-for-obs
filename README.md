@@ -66,4 +66,4 @@ The plugin uses remote thread injection to apply protection to other processes, 
 
 This project is licensed under the [GNU General Public License v2](LICENSE).
 
-© 2026 [Cyan](https://github.com/jiejiebiezheyang) &lt;ltpcloud@qq.com&gt;
+© 2026 [jiejiebiezheyang](https://github.com/jiejiebiezheyang) &lt;1964234252@qq.com&gt;
