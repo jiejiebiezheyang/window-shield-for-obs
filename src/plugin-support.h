@@ -1,6 +1,6 @@
 /*
 window-shield-for-obs
-Copyright (C) <2026> <Cyan> <ltpcloud@qq.com>
+Copyright (C) <2026> <jiejiebiezheyang> <1964234252@qq.com>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
