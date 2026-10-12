@@ -17,7 +17,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>
 */
 
 /**
- * @file WindowHandler.h
+ * @file window-handler.h
  * @brief 窗口处理器头文件 - 提供窗口枚举和 Display Affinity 控制功能
  *
  * 本模块实现了跨进程调用 SetWindowDisplayAffinity API 的功能，

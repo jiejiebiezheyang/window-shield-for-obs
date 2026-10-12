@@ -23,7 +23,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>
 #include <QTimer>
 #include <QScrollBar>
 #include <QMessageBox>
-#include "WindowHandler.h"
+#include "window-handler.h"
 #include <qevent.h>
 
 bool WindowShieldDialog::s_opened = false;

@@ -17,14 +17,14 @@ with this program. If not, see <https://www.gnu.org/licenses/>
 */
 
 /**
- * @file WindowHandler.cpp
+ * @file window-handler.cpp
  * @brief 窗口处理器实现文件
  *
  * 实现了窗口枚举和跨进程 Display Affinity 控制功能。
  * 核心技术：通过解析 PE 导出表定位函数地址，生成 shellcode，使用 CreateRemoteThread 注入执行。
  */
 
-#include "WindowHandler.h"
+#include "window-handler.h"
 #include <dwmapi.h>
 #include <psapi.h>
 #include <vector>
